@@ -45,6 +45,14 @@ def scan_env():
 
 def main(argv=None):
     argv = argv or sys.argv[1:]
+    # Record the executed command for simple history tracking.
+    try:
+        command = " ".join([sys.executable] + sys.argv)
+        with open("history.list", "a") as history:
+            history.write(command + "\n")
+    except OSError:
+        # Ignore failures since history tracking should not break the tool.
+        pass
     if not argv or argv[0] in {"-h", "--help"}:
         print_usage()
         return 0

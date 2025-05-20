@@ -10,3 +10,6 @@ Run `cli.py` without arguments to see usage instructions. Use the `--test` optio
 python3 cli.py --test
 ```
 
+Every invocation of `cli.py` is appended to `history.list` in the
+repository root so you can review past commands.
+
