@@ -10,3 +10,6 @@ Run `cli.py` without arguments to see usage instructions. Use the `--test` optio
 python3 cli.py --test
 ```
 
+Each invocation of the CLI is appended to `~/.codextest_history` so you can review
+the commands you've run.
+

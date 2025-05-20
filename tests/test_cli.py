@@ -4,6 +4,8 @@ import unittest
 from contextlib import redirect_stdout
 from unittest.mock import patch
 import sys
+import tempfile
+from pathlib import Path
 
 import cli
 
@@ -66,6 +68,18 @@ class TestCLI(unittest.TestCase):
                 cli.scan_env()
         output = buf.getvalue()
         self.assertIn("No postgres connection info found.", output)
+
+    def test_history_file_written(self):
+        """GIVEN a call to main
+        WHEN it is executed
+        THEN the invocation should be appended to the history file"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            history = Path(tmpdir) / ".codextest_history"
+            with patch.object(cli, "HISTORY_FILE", history):
+                cli.main(["--test"])
+            self.assertTrue(history.exists())
+            content = history.read_text().strip()
+            self.assertEqual(content, "--test")
 
 
 if __name__ == "__main__":
