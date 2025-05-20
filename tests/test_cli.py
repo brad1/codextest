@@ -69,6 +69,36 @@ class TestCLI(unittest.TestCase):
         output = buf.getvalue()
         self.assertIn("No postgres connection info found.", output)
 
+    def test_check_requirements_reports_found_and_missing(self):
+        """GIVEN a requirements file
+        WHEN check_requirements is called
+        THEN it should report which tools are found"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            req_file = Path(tmpdir) / "requirements.list"
+            req_file.write_text("foo\nbar\n", encoding="utf-8")
+            def fake_which(cmd):
+                return "/usr/bin/foo" if cmd == "foo" else None
+            buf = io.StringIO()
+            with patch("cli.shutil.which", side_effect=fake_which):
+                with redirect_stdout(buf):
+                    cli.check_requirements(req_file)
+        output = buf.getvalue()
+        self.assertIn("foo: found", output)
+        self.assertIn("bar: not found", output)
+
+    def test_main_test_runs_scans_and_checks(self):
+        """GIVEN the --test argument
+        WHEN main is called
+        THEN it should run scan_env and check_requirements"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            history = Path(tmpdir) / ".codextest_history"
+            with patch.object(cli, "HISTORY_FILE", history):
+                with patch.object(cli, "scan_env") as scan_mock, patch.object(cli, "check_requirements") as check_mock:
+                    code = cli.main(["--test"])
+        self.assertTrue(scan_mock.called)
+        self.assertTrue(check_mock.called)
+        self.assertEqual(code, 0)
+
     def test_history_file_written(self):
         """GIVEN a call to main
         WHEN it is executed
