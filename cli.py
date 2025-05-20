@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Simple command line utility to scan for postgres connections."""
+"""Simple command line utility to scan for postgres connections and verify requirements."""
 import os
 import sys
+import shutil
 from pathlib import Path
 
 HISTORY_FILE = Path.home() / ".codextest_history"
+REQUIREMENTS_FILE = Path(__file__).with_name("requirements.list")
 
 
 def save_history(args):
@@ -19,7 +21,7 @@ def save_history(args):
 USAGE = (
     "Usage: cli.py [--test]\n\n"
     "Options:\n"
-    "  --test       Scan environment for postgres DB connections.\n"
+    "  --test       Scan environment for postgres DB connections and check requirements.\n"
     "  -h, --help   Show this help message.\n\n"
     "Command history is saved to ~/.codextest_history."
 )
@@ -61,6 +63,24 @@ def scan_env():
         print("No postgres connection info found.")
 
 
+def check_requirements(requirements_path=None):
+    """Check which command-line tools from requirements.list are installed."""
+    path = Path(requirements_path or REQUIREMENTS_FILE)
+    if not path.exists():
+        print(f"Requirements file not found at {path}")
+        return
+
+    with open(path, "r", encoding="utf-8") as req_file:
+        for line in req_file:
+            req = line.strip()
+            if not req:
+                continue
+            if shutil.which(req):
+                print(f"{req}: found")
+            else:
+                print(f"{req}: not found")
+
+
 def main(argv=None):
     argv = argv or sys.argv[1:]
     save_history(argv)
@@ -70,6 +90,7 @@ def main(argv=None):
 
     if argv[0] == "--test":
         scan_env()
+        check_requirements()
         return 0
 
     print_usage()
