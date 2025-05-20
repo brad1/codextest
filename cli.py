@@ -4,7 +4,25 @@ import os
 import sys
 from pathlib import Path
 
-USAGE = """Usage: cli.py [--test]\n\nOptions:\n  --test       Scan environment for postgres DB connections.\n  -h, --help   Show this help message.\n"""
+HISTORY_FILE = Path.home() / ".codextest_history"
+
+
+def save_history(args):
+    """Append the given arguments to the history file."""
+    try:
+        with open(HISTORY_FILE, "a", encoding="utf-8") as fh:
+            fh.write(" ".join(args) + "\n")
+    except OSError:
+        # Failing to write history should not prevent the CLI from working
+        pass
+
+USAGE = (
+    "Usage: cli.py [--test]\n\n"
+    "Options:\n"
+    "  --test       Scan environment for postgres DB connections.\n"
+    "  -h, --help   Show this help message.\n\n"
+    "Command history is saved to ~/.codextest_history."
+)
 
 def print_usage():
     print(USAGE.strip())
@@ -45,6 +63,7 @@ def scan_env():
 
 def main(argv=None):
     argv = argv or sys.argv[1:]
+    save_history(argv)
     if not argv or argv[0] in {"-h", "--help"}:
         print_usage()
         return 0
